@@ -18,6 +18,14 @@ pipeline {
                 volumeMounts:
                 - name: docker-socket
                   mountPath: /var/run/docker.sock
+              - name: node
+                image: node:14
+                command:
+                - cat
+                tty: true
+                volumeMounts:
+                - name: docker-socket
+                  mountPath: /var/run/docker.sock
               volumes:
               - name: docker-socket
                 hostPath:
@@ -26,48 +34,73 @@ pipeline {
             """
         }
     }
-
     environment {
-        // 환경 변수 설정
-        DOCKERHUB_CREDENTIALS_ID = 'dockerHub-token'
-        DOCKERHUB_USERNAME = 'heebin00'
-        IMAGE_TAG = '0.1' // yml파일과 버전 맞추기
+        GIT_CREDENTIALS_ID = 'github-token'
     }
-
+    
     stages {
-        stage('Checkout') {
+        stage('git clone') {
             steps {
-                // GitHub 저장소에서 소스 코드 체크아웃
-                git branch: 'main', url: 'https://github.com/hee-bin/frontend-cicd-test.git'
+                container('jnlp') {
+                    git credentialsId: env.GIT_CREDENTIALS_ID, branch: 'main', url: 'https://github.com/minhooooo/kube-employment-frontend.git'
+                }
             }
         }
-
-        stage('Build & Push Docker Images') {
+        
+        stage('Build Docker Image') {
             steps {
                 container('docker') {
                     script {
-                        // Docker Hub에 로그인
-                        withCredentials([usernamePassword(credentialsId: env.DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
-                            sh 'echo $DOCKERHUB_PASS | docker login -u $DOCKERHUB_USER --password-stdin'
-                        }
-                        // Docker 이미지 빌드 및 푸시
-                        sh 'docker build -t $DOCKERHUB_USERNAME/client:$IMAGE_TAG ./'
-                        sh 'docker push $DOCKERHUB_USERNAME/client:$IMAGE_TAG'
+                        def customImage = docker.build("kube-employment-frontend:${env.BUILD_ID}")
                     }
                 }
             }
         }
-    }
-
-    post {
-        always {
-            echo '이 작업은 실행 결과에 상관없이 항상 실행됩니다.'
+        
+        stage('Test') {
+            steps {
+                container('docker') {
+                    script {
+                        docker.image("kube-employment-frontend:${env.BUILD_ID}").inside {
+                            sh 'echo "Running tests..."'
+                            sh 'echo "image build..."'
+                        }
+                    }
+                }
+                echo 'Testing..'
+            }
         }
-        success {
-            echo '이 작업은 빌드가 성공하면 실행됩니다.'
+        
+        stage('Execute') {
+            steps {
+                container('docker') {
+                    script {
+                        docker.image("kube-employment-frontend:${env.BUILD_ID}").inside {
+                            sh 'echo "Executing application..."'
+                            sh 'echo "testing tests..."'
+                        }
+                    }
+                }
+                echo 'executing..'
+            }
         }
-        failure {
-            echo '이 작업은 빌드가 실패하면 실행됩니다.'
+        
+        stage('Test Push Docker Image') {
+            steps {
+                container('docker') {
+                    script {
+                        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS'),
+                                         string(credentialsId: 'dockerhub-repo', variable: 'DOCKER_HUB_REPO')]) {
+                            sh "echo ${DOCKERHUB_PASS} | docker login -u ${DOCKERHUB_USER} --password-stdin"
+                            sh "docker pull hello-world:latest"
+                            sh "docker tag hello-world:latest ${DOCKER_HUB_REPO}:${env.BUILD_ID}"
+                            sh "docker push ${DOCKER_HUB_REPO}:${env.BUILD_ID}"
+                            sh "docker tag hello-world:latest ${DOCKER_HUB_REPO}:latest"
+                            sh "docker push ${DOCKER_HUB_REPO}:latest"
+                        }
+                    }
+                }
+            }
         }
     }
 }
