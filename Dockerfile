@@ -7,7 +7,7 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
-COPY package.json package-lock.json* ./
+COPY package.json  ./
 RUN npm config set registry https://registry.npmjs.org/ && \
     npm ci --retry=5 --fetch-retry-maxtimeout=100000
 
