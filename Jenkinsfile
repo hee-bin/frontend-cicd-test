@@ -35,7 +35,7 @@ pipeline {
         }
     }
     environment {
-        GIT_CREDENTIALS_ID = 'github-token'
+        GIT_CREDENTIALS_ID = 'git-token'
         DOCKER_HUB_REPO = 'heebin00/awsfront' // 도커 허브 레포 이름을 직접 지정
 
     }
