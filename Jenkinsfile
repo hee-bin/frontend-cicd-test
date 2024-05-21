@@ -37,7 +37,6 @@ pipeline {
     environment {
         GIT_CREDENTIALS_ID = 'git-token'
         DOCKER_HUB_REPO = 'heebin00/awsfront' // 도커 허브 레포 이름을 직접 지정
-
     }
     
     stages {
@@ -58,14 +57,12 @@ pipeline {
                 }
             }
         }
-     
         
         stage('Push Docker Image') {
             steps {
                 container('docker') {
                     script {
-                        withCredentials([usernamePassword(credentialsId: 'dockerHub-token', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS'),
-                                         string(credentialsId: 'dockerhub-repo', variable: 'DOCKER_HUB_REPO')]) {
+                        withCredentials([usernamePassword(credentialsId: 'dockerHub-token', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
                             sh "echo ${DOCKERHUB_PASS} | docker login -u ${DOCKERHUB_USER} --password-stdin"
                             sh "docker tag kube-employment-frontend:${env.BUILD_ID} ${DOCKER_HUB_REPO}:${env.BUILD_ID}"
                             sh "docker push ${DOCKER_HUB_REPO}:${env.BUILD_ID}"
