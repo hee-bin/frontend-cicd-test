@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . /app
 
 # 의존성 설치 (네트워크 타임아웃 및 재시도 로직 추가)
-RUN npm install --retry=5 --fetch-retry-maxtimeout=100000
+RUN bash -c 'for i in $(seq 1 5); do npm install && break || sleep 15; done'
 
 # 빌드
 RUN npm run build
