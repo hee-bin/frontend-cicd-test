@@ -58,34 +58,7 @@ pipeline {
                 }
             }
         }
-        
-        stage('Test') {
-            steps {
-                container('docker') {
-                    script {
-                        docker.image("kube-employment-frontend:${env.BUILD_ID}").inside {
-                            sh 'echo "Running tests..."'
-                            sh 'echo "image build..."'
-                        }
-                    }
-                }
-                echo 'Testing..'
-            }
-        }
-        
-        stage('Execute') {
-            steps {
-                container('docker') {
-                    script {
-                        docker.image("kube-employment-frontend:${env.BUILD_ID}").inside {
-                            sh 'echo "Executing application..."'
-                            sh 'echo "testing tests..."'
-                        }
-                    }
-                }
-                echo 'executing..'
-            }
-        }
+     
         
         stage('Push Docker Image') {
             steps {
