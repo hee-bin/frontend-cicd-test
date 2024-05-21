@@ -44,7 +44,7 @@ pipeline {
         stage('git clone') {
             steps {
                 container('jnlp') {
-                    git credentialsId: env.GIT_CREDENTIALS_ID, branch: 'main', url: 'https://github.com/minhooooo/kube-employment-frontend.git'
+                    git credentialsId: env.GIT_CREDENTIALS_ID, branch: 'main', url: 'https://github.com/hee-bin/frontend-cicd-test.git'
                 }
             }
         }
