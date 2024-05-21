@@ -36,6 +36,8 @@ pipeline {
     }
     environment {
         GIT_CREDENTIALS_ID = 'github-token'
+        DOCKER_HUB_REPO = 'heebin00/awsfront' // 도커 허브 레포 이름을 직접 지정
+
     }
     
     stages {
@@ -85,17 +87,16 @@ pipeline {
             }
         }
         
-        stage('Test Push Docker Image') {
+        stage('Push Docker Image') {
             steps {
                 container('docker') {
                     script {
-                        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS'),
+                        withCredentials([usernamePassword(credentialsId: 'dockerHub-token', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS'),
                                          string(credentialsId: 'dockerhub-repo', variable: 'DOCKER_HUB_REPO')]) {
                             sh "echo ${DOCKERHUB_PASS} | docker login -u ${DOCKERHUB_USER} --password-stdin"
-                            sh "docker pull hello-world:latest"
-                            sh "docker tag hello-world:latest ${DOCKER_HUB_REPO}:${env.BUILD_ID}"
+                            sh "docker tag kube-employment-frontend:${env.BUILD_ID} ${DOCKER_HUB_REPO}:${env.BUILD_ID}"
                             sh "docker push ${DOCKER_HUB_REPO}:${env.BUILD_ID}"
-                            sh "docker tag hello-world:latest ${DOCKER_HUB_REPO}:latest"
+                            sh "docker tag kube-employment-frontend:${env.BUILD_ID} ${DOCKER_HUB_REPO}:latest"
                             sh "docker push ${DOCKER_HUB_REPO}:latest"
                         }
                     }
