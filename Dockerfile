@@ -9,9 +9,8 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./
-# Set npm registry to Taobao mirror to speed up package installation
-RUN npm config set registry https://registry.npm.taobao.org/ && \
-    npm ci --retry=5 --fetch-retry-maxtimeout=100000
+# Retry logic for npm install
+RUN for i in $(seq 1 5); do npm install && break || sleep 15; done
 
 # Rebuild the source code only when needed
 FROM base AS builder
