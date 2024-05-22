@@ -18,29 +18,35 @@ pipeline {
                 volumeMounts:
                 - name: docker-socket
                   mountPath: /var/run/docker.sock
-              - name: node
-                image: node:14
+              - name: kubectl
+                image: lachlanevenson/k8s-kubectl:latest
                 command:
                 - cat
                 tty: true
                 volumeMounts:
-                - name: docker-socket
-                  mountPath: /var/run/docker.sock
+                - name: kube-config
+                  mountPath: /root/.kube
               volumes:
               - name: docker-socket
                 hostPath:
                   path: /var/run/docker.sock
                   type: Socket
+              - name: kube-config
+                configMap:
+                  name: kube-config
             """
         }
     }
     environment {
         GIT_CREDENTIALS_ID = 'git-token'
-        DOCKER_HUB_REPO = 'heebin00/awsfront' // 도커 허브 레포 이름을 직접 지정
+        DOCKER_HUB_REPO = 'heebin00/awsfront'
+        SLACK_CHANNEL = '#cicd-alarm-test'
+        SLACK_CREDENTIAL_ID = 'slack-token'
+        KUBECONFIG_PATH = '/root/.kube/config'
     }
     
     stages {
-        stage('git clone') {
+        stage('Clone Repository') {
             steps {
                 container('jnlp') {
                     git credentialsId: env.GIT_CREDENTIALS_ID, branch: 'main', url: 'https://github.com/hee-bin/frontend-cicd-test.git'
@@ -52,7 +58,7 @@ pipeline {
             steps {
                 container('docker') {
                     script {
-                        def customImage = docker.build("kube-employment-frontend:${env.BUILD_ID}")
+                        def customImage = docker.build("${DOCKER_HUB_REPO}:${env.BUILD_ID}")
                     }
                 }
             }
@@ -64,13 +70,48 @@ pipeline {
                     script {
                         withCredentials([usernamePassword(credentialsId: 'dockerHub-token', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
                             sh "echo ${DOCKERHUB_PASS} | docker login -u ${DOCKERHUB_USER} --password-stdin"
-                            sh "docker tag kube-employment-frontend:${env.BUILD_ID} ${DOCKER_HUB_REPO}:${env.BUILD_ID}"
+                            sh "docker tag ${DOCKER_HUB_REPO}:${env.BUILD_ID} ${DOCKER_HUB_REPO}:${env.BUILD_ID}"
                             sh "docker push ${DOCKER_HUB_REPO}:${env.BUILD_ID}"
-                            sh "docker tag kube-employment-frontend:${env.BUILD_ID} ${DOCKER_HUB_REPO}:latest"
+                            sh "docker tag ${DOCKER_HUB_REPO}:${env.BUILD_ID} ${DOCKER_HUB_REPO}:latest"
                             sh "docker push ${DOCKER_HUB_REPO}:latest"
                         }
                     }
                 }
+            }
+        }
+        
+        stage('Deploy to Kubernetes') {
+            steps {
+                container('kubectl') {
+                    script {
+                        withEnv(["KUBECONFIG=${env.KUBECONFIG_PATH}"]) {
+                            def deploymentExists = sh(script: 'kubectl get deployment frontend', returnStatus: true) == 0
+                            if (deploymentExists) {
+                                sh "kubectl set image deployment/frontend frontend=${DOCKER_HUB_REPO}:${env.BUILD_ID} --record"
+                            } else {
+                                sh 'kubectl apply -f test.yml'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                slackSend(channel: env.SLACK_CHANNEL, message: "Build ${currentBuild.fullDisplayName} finished with status: ${currentBuild.currentResult}")
+            }
+        }
+        success {
+            script {
+                slackSend(channel: env.SLACK_CHANNEL, message: "Build ${currentBuild.fullDisplayName} succeeded")
+            }
+        }
+        failure {
+            script {
+                slackSend(channel: env.SLACK_CHANNEL, message: "Build ${currentBuild.fullDisplayName} failed")
             }
         }
     }
