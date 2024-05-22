@@ -34,7 +34,7 @@ const page = () => {
       <Card className="min-w-[400px]">
         <CardHeader className="flex items-center justify-center py-8">
           <div className="font-extrabold text-3xl text-center">
-            회원가입 회원가입
+            회원가입 회원가입 회원가입
           </div>
         </CardHeader>
         <CardBody>
