@@ -45,7 +45,7 @@ const page = () => {
                 size="lg"
                 type="email"
                 label="이메일"
-                placeholder="이메일 입력"
+                placeholder="이메일 입력입력"
                 name="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
