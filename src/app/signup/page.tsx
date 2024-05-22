@@ -33,7 +33,9 @@ const page = () => {
     <div className="flex items-center justify-center min-h-screen">
       <Card className="min-w-[400px]">
         <CardHeader className="flex items-center justify-center py-8">
-          <div className="font-extrabold text-3xl text-center">회원가입</div>
+          <div className="font-extrabold text-3xl text-center">
+            회원가입 회원가입
+          </div>
         </CardHeader>
         <CardBody>
           <form onSubmit={handleSubmit}>
@@ -45,7 +47,7 @@ const page = () => {
                 size="lg"
                 type="email"
                 label="이메일"
-                placeholder="이메일 입력입력"
+                placeholder="이메일 입력"
                 name="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
