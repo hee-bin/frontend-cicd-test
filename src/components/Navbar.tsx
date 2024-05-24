@@ -31,7 +31,7 @@ const Navigation = () => {
       <nav className="navbar">
         <div className="navbar-brand">
           <Link href={userData[0]?.type === "admin" ? "/admin" : "/"}>
-            <a className="title">취Up하자</a>
+            <a className="title">취하자</a>
           </Link>
         </div>
 
