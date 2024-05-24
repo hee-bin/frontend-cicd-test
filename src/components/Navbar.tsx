@@ -28,35 +28,63 @@ const Navigation = () => {
 
   return (
     <>
-      <Navbar position="static">
-        <NavbarBrand>
+      <nav className="navbar">
+        <div className="navbar-brand">
           <Link href={userData[0]?.type === "admin" ? "/admin" : "/"}>
-            <p className="font-bold text-xl">취Up하자</p>
+            <a className="title">취Up하자</a>
           </Link>
-        </NavbarBrand>
+        </div>
 
-        <NavbarContent justify="end">
-          <NavbarItem>
+        <div className="navbar-content">
+          <div className="navbar-item">
             {userData.length > 0 ? (
-              <Button
-                variant="bordered"
-                color="primary"
-                onClick={onLogoutButton}
-              >
+              <button className="button" onClick={onLogoutButton}>
                 로그아웃
-              </Button>
+              </button>
             ) : (
-              <Button
-                variant="bordered"
-                color="primary"
-                onClick={onLoginButton}
-              >
+              <button className="button" onClick={onLoginButton}>
                 로그인
-              </Button>
+              </button>
             )}
-          </NavbarItem>
-        </NavbarContent>
-      </Navbar>
+          </div>
+        </div>
+      </nav>
+
+      <style jsx>{`
+        .navbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px 20px;
+          background-color: #FFA07A; ## ADD8E6, ADFF2F,FFA07A 
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          height: 120px
+        }
+        .navbar-brand .title {
+          font-size: 1.5rem;
+          font-weight: bold;
+          color: white;
+        }
+        .navbar-content {
+          display: flex;
+        }
+        .navbar-item {
+          margin-left: 20px;
+        }
+        .button {
+          padding: 10px 20px;
+          border: none;
+          background-color: transparent;
+          border: 2px solid white;
+          color: white;
+          cursor: pointer;
+          transition: background-color 0.3s, color 0.3s;
+        }
+        .button:hover {
+          background-color: #06f;
+          color: white;
+        }
+      `}</style>
     </>
   );
 };
