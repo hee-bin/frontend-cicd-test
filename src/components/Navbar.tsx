@@ -56,7 +56,7 @@ const Navigation = () => {
           justify-content: space-between;
           align-items: center;
           padding: 10px 20px;
-          background-color: #FFA07A; ## ADD8E6, ADFF2F,FFA07A 
+          background-color: #ADD8E6; ## ADD8E6, ADFF2F,FFA07A 
           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
           height: 120px
         }
